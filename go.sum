@@ -1,0 +1,8 @@
+github.com/burl/inquire v0.2.0 h1:eKYkwCoFGWYvq08A8b+px0l+0ccaRy9t/lBzi10IYh4=
+github.com/burl/inquire v0.2.0/go.mod h1:JlP3MYYPXJHI6sd/8XICX1rkOTzzAktmppsPLNurXAM=
+github.com/burl/termbox-go v0.0.0-20160628184006-0e2effceb9ce h1:vkHYktXXCFNZLgS4/w2UfRVIF72cW7c1tXxQ8rqu/oE=
+github.com/burl/termbox-go v0.0.0-20160628184006-0e2effceb9ce/go.mod h1:TUygBzp/EDfG7WTqU46RPh2Dr/UdJwygyQyIfPihKTc=
+github.com/mattn/go-runewidth v0.0.14 h1:+xnbZSEeDbOIg5/mE6JF0w6n9duR1l3/WmbinWVwUuU=
+github.com/mattn/go-runewidth v0.0.14/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
+github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
+github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
