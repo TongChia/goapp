@@ -1,4 +1,4 @@
-module goapp
+module github.com/tongchia/goapp
 
 go 1.19
 
