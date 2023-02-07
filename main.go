@@ -3,73 +3,124 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/burl/inquire"
 	"github.com/burl/inquire/widget"
+	"github.com/jessevdk/go-flags"
+	git "gopkg.in/src-d/go-git.v4"
 )
 
-func widgetTest() {
+type packages struct {
+	Inject   string   `long:"inject" choice:"uber/fx" choice:"uber/dig" choice:"samber/do" choice:"google/wire"`
+	Logger   string   `long:"logger" choice:"uber/zap" choice:"logrus"`
+	Helper   []string `long:"helper" choice:"samber/lo"`
+	Configs  []string `long:"config" choice:"dockerfile" choice:"docker-compose" choice:"k8s" choice:"envoy" choice:"nginx"`
+	Database []string `long:"database" choice:"entgo"`
+}
 
-	// vars that will receive the answers to the questions
-	var (
-		name, quest, weight, passwd string
-		red, green, blue, proceed   bool
-	)
+type options struct {
+	Verbose  []bool   `short:"v" long:"verbose" description:"Show verbose debug information"`
+	Name     string   `long:"name" description:"Project name"`
+	Style    string   `long:"style" description:"Project styles"`
+	Packages packages `group:"packages"`
+}
 
-	name = "Sir Lancelot" // if you want a default value
-	quest = "grail"       // for any of the widgets, then
-	green = true          // just assign values to the vars
+func generate(opt options) {
+	var ok bool
 
-	inquire.Query().
-		// if you just have a plain old question, pass nil as the final arg
-		Input(&name, "What is your name", nil).
-		Menu(&quest, "What is your quest", func(w *widget.Menu) {
-			// if you want to do a bit more, pass a callback - each kind
-			// of widget will pass a type into the callback where you can...
-			w.Hint("use arrow keys, pick one")  // set up custom hint text
-			w.Item("shrub", "find a shrubbery") // set up the values and prompts
-			w.Item("grail", "find the grail")   // the &quest var will be set
-			w.Item("nuts", "find coconuts")     // to one of: shrub, grail or nuts
-		}).
-		Input(&weight, "What is the weight of an unladen swallow", func(w *widget.Input) {
-			// this question will only be shown when the value of quest is "nuts"
-			w.WhenEqual(&quest, "nuts") // there is also a generic form
-			w.Valid(func(value string) string {
-				// and things can be validated ...
-				n, err := strconv.Atoi(value)
-				if err != nil || n < 1 {
-					// invalid input should return a non-empty error message
-					return "not good, you need to enter a number"
-				}
-				// if the data is valid, return an empty string
-				return ""
-			})
-		}).
-		Select("what are your favorite colors", func(w *widget.Select) {
+	q := inquire.Query()
+	if opt.Name == "" {
+		q = q.Input(&opt.Name, "What is your project name", nil)
+	}
+	if opt.Style == "" {
+		q = q.Menu(&opt.Style, "What is your project styles", func(w *widget.Menu) {
+			w.Hint("use arrow keys, pick one")
+			w.Item("simple-grpc", "Simple gRPC service")
+			w.Item("grpc-http", "gRPC with HTTP service")
+			w.Item("grpc-micro", "gRPC micro services")
+		})
+	}
+	if opt.Packages.Inject == "" {
+		q = q.Menu(&opt.Packages.Inject, "what is your favorite dependency injection package", func(w *widget.Menu) {
+			w.Hint("use arrow keys, pick one")
+			w.Item("uber/fx", "uber/fx")
+			w.Item("uber/dig", "uber/dig")
+			w.Item("samber/do", "samber/do")
+			w.Item("google/wire", "google/wire")
+		})
+	}
+	if opt.Packages.Helper == nil {
+		opts := map[string]bool{
+			"samber/lo": false,
+		}
+		q = q.Select("what are your favorite helper packages", func(w *widget.Select) {
 			w.Hint("use arrow/space, select multiple")
-			w.Item(&red, "red")     // the select or "checkbox" widget will
-			w.Item(&blue, "blue")   // toggle the value of the referenced
-			w.Item(&green, "green") // boolean variable
-		}).
-		Input(&passwd, "What is your secret", func(w *widget.Input) {
-			w.MaskInput() // or, w.MaskInput('*')
-		}).
-		YesNo(&proceed, "Continue"). // simple yes/no
-		Exec()                       // render all the questions.
+			for k, v := range opts {
+				w.Item(&v, k)
+			}
+		})
+	}
+	if opt.Packages.Database == nil {
+		opts := map[string]bool{
+			"entgo":    false,
+			"go-redis": false,
+		}
+		q = q.Select("what database driver / ORM do you need", func(w *widget.Select) {
+			w.Hint("use arrow/space, select multiple")
+			for k, v := range opts {
+				w.Item(&v, k)
+			}
+		})
+	}
+	if opt.Packages.Configs == nil {
+		opts := map[string]bool{
+			"dockerfile":     false,
+			"docker-compose": false,
+			"k8s":            false,
+			"envoy":          false,
+			"nginx":          false,
+		}
+		q = q.Select("what config do you need", func(w *widget.Select) {
+			w.Hint("use arrow/space, select multiple")
+			for k, v := range opts {
+				w.Item(&v, k)
+			}
+		})
+	}
 
-	if !proceed {
+	q.YesNo(&ok, "Continue").Exec()
+
+	if !ok {
 		fmt.Println("aborted.")
 		os.Exit(1)
 	}
 
-	fmt.Printf("\nHere are the answers:\n---------------------\n")
-	fmt.Printf("name  : %s\n", name)
-	fmt.Printf("quest : %s\n", quest)
-	fmt.Printf("colors: red:%v, green:%v, blue:%v\n", red, green, blue)
-	fmt.Printf("secret: %s (shhh!)\n", passwd)
+	fmt.Printf("\nReady to generate project `%s`\n---------------------\n", opt.Name)
+	fmt.Println("git clone https://github.com/go-kratos/kratos-layout")
+	_, err := git.PlainClone(strings.Replace(strings.ToLower(opt.Name), " ", "-", 0), false, &git.CloneOptions{
+		URL:      "https://github.com/go-kratos/kratos-layout.git",
+		Progress: os.Stdout,
+	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("OK")
 }
 
 func main() {
-	widgetTest()
+	opt := options{}
+	parser := flags.NewParser(&opt, flags.Default)
+	_, err := parser.Parse()
+	if err == nil {
+		generate(opt)
+	} else {
+		if e, ok := err.(*flags.Error); ok {
+			if e.Type == flags.ErrHelp {
+				return
+			}
+		}
+		fmt.Println(err)
+	}
 }
