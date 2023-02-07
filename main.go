@@ -98,7 +98,7 @@ func generate(opt options) {
 
 	fmt.Printf("\nReady to generate project `%s`\n---------------------\n", opt.Name)
 	fmt.Println("git clone https://github.com/go-kratos/kratos-layout")
-	_, err := git.PlainClone(strings.Replace(strings.ToLower(opt.Name), " ", "-", 0), false, &git.CloneOptions{
+	_, err := git.PlainClone(strings.Replace(strings.ToLower(opt.Name), " ", "-", -1), false, &git.CloneOptions{
 		URL:      "https://github.com/go-kratos/kratos-layout.git",
 		Progress: os.Stdout,
 	})
